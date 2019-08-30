@@ -1,4 +1,5 @@
-#' Reference data for SuessR Suess and Laws corrections
+#' Reference dataset for the SuessR Package
+#'
 #'
 #' @docType data
 #'
@@ -8,11 +9,11 @@
 #'
 #' @keywords datasets
 #'
-#' @references Coming Soon
+#' @references
 #'
-#' @source Coming Soon
+#' @source
 #'
 #' @examples
 #' data(SuessR.reference.data)
-#'
+#' sst.bering <- SuessR.reference.data[Suessr.reference.data$region == "Bering"]
 "SuessR.reference.data"
