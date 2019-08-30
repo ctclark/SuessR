@@ -24,6 +24,7 @@ SuessR <- function(data, correct.to = 1850) {
   lnK0 <- -58.0931+90.5069*(100/(SuessR.reference.data$sst+273.15))+(22.294*log((SuessR.reference.data$sst+273.15)/100))+(SuessR.reference.data$S*(0.027766+-0.025888*((SuessR.reference.data$sst+273.15)/100)+0.005058*((SuessR.reference.data$sst+273.15)/100)^2))
   laws <- data.frame(lnK0 = lnK0)
   laws$region <- SuessR.reference.data$region
+  laws$oi <- rep(NA, length(SuessR.reference.data$sst))
 
   #Ocean Increase
   for(j in 2:length(SuessR.reference.data$sst)) {
@@ -91,7 +92,7 @@ SuessR <- function(data, correct.to = 1850) {
                                    ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
                                      ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
                                     (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850]+1))))
-    SuessR.out$net.cor[i]    <- SuessR.out$Suess.cor[i] + SuessR.out$laws.cor[i]
+    SuessR.out$net.cor[i]    <- SuessR.out$suess.cor[i] + SuessR.out$laws.cor[i]
     SuessR.out$d13c.cor[i]   <- data$d13c[data$year == data$year[i] & data$region == data$region[i]] + SuessR.out$net.cor[i]
   }
   print(SuessR.out)
@@ -127,6 +128,7 @@ SuessR.custom <- function(data, custom.data, correct.to = 1850) {
   lnK0 <- -58.0931+90.5069*(100/(SuessR.reference.data.custom$sst+273.15))+(22.294*log((SuessR.reference.data.custom$sst+273.15)/100))+(SuessR.reference.data.custom$S*(0.027766+-0.025888*((SuessR.reference.data.custom$sst+273.15)/100)+0.005058*((SuessR.reference.data.custom$sst+273.15)/100)^2))
   laws <- data.frame(lnK0 = lnK0)
   laws$region <- SuessR.reference.data.custom$region
+  laws$oi <- rep(NA, length(SuessR.reference.data.custom$sst))
 
   #Ocean Increase
   for(j in 2:length(SuessR.reference.data.custom$sst)) {
@@ -194,7 +196,7 @@ SuessR.custom <- function(data, custom.data, correct.to = 1850) {
             ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
                 ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
                (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850]+1))))
-    SuessR.out$net.cor[i]    <- SuessR.out$Suess.cor[i] + SuessR.out$laws.cor[i]
+    SuessR.out$net.cor[i]    <- SuessR.out$suess.cor[i] + SuessR.out$laws.cor[i]
     SuessR.out$d13c.cor[i]   <- data$d13c[data$year == data$year[i] & data$region == data$region[i]] + SuessR.out$net.cor[i]
   }
   print(SuessR.out)
