@@ -9,10 +9,16 @@ SuessR <- function(data, correct.to = 1850) {
   if(anyNA(data)) warning("Rows with missing values were deleted")
   data <- na.omit(data)
 
-
   # Screen input data to make sure all years provided are integers between 1850 and the current year -1
   current.year <- as.numeric(substr(date(), 21,24))-1
-  if(any(!(data$year %in% 1850:current.year)))  stop(paste("Year must be an integer between 1850 and", current.year))
+  if(any(!(data$year %in% 1850:current.year)))  stop(paste("Year must be an integer between 1850 and ", current.year))
+
+  # Screen input data to check for non-negative d13c values
+  if(any(data$d13c >= 0)) warning(paste("Some d13c value(s) are non-negative"))
+
+  # Screen input data to check for (and remove) missing values, with warning
+  if(any(!(data$region %in% SuessR.reference.data$region))) stop(paste("Unrecognized region: "), data$region[!(data$region %in% SuessR.reference.data$region)])
+
 
 
   # Create output data frame
@@ -111,16 +117,27 @@ SuessR.custom <- function(data, custom.data, correct.to = 1850) {
   if(anyNA(data)) warning("Rows with missing values were deleted")
   data <- na.omit(data)
 
-
   # Screen input data to make sure all years provided are integers between 1850 and the current year -1
   current.year <- as.numeric(substr(date(), 21,24))-1
   if(any(!(data$year %in% 1850:current.year)))  stop(paste("Year must be an integer between 1850 and", current.year))
+
+  # Screen input data to check for non-negative d13c values
+  if(any(data$d13c >= 0)) warning(paste("Non-negative d13c value(s) supplied to SuessR"))
+
 
 
   # Create output data frame
      SuessR.out <- data.frame(id = data$id, year = data$year)
 
+
+  # Append the custom data to the end of the SuessR.reference.data file
+
   SuessR.reference.data.custom <- as.data.frame(rbind(SuessR.reference.data, custom.data))
+
+  # Screen input data to check for (and remove) missing values, with warning
+  if(any(!(data$region %in% SuessR.reference.data.custom$region))) stop(paste("Unrecognized region: "), data$region[!(data$region %in% SuessR.reference.data.custom$region)])
+
+
 
   ref.array <- simplify2array(by(SuessR.reference.data.custom[,-2], SuessR.reference.data.custom$region, as.matrix))
 
