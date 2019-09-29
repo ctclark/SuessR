@@ -15,5 +15,6 @@
 #'
 #' @examples
 #' data(SuessR.reference.data)
-#' sst.bering <- SuessR.reference.data[Suessr.reference.data$region == "Bering"]
+#' sst.bering <- SuessR.reference.data$sst[SuessR.reference.data$region == "Bering"]
+#'
 "SuessR.reference.data"

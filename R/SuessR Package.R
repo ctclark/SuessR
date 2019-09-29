@@ -1,9 +1,19 @@
 # SuessR Package
 
 
+# Function to calculate the Laws correction. Used within the SuessR() and SuessR.custom() functions.
+
+laws.fun <- function(e1,e2,e.1,laws.CO2, P, mu, C, b) {
+  e2 + e1 - e.1 - (1/(1+((laws.CO2*P)/ (mu*C*(1+b))))) * ((e2 - e.1)/ (b+1))
+}
+
+
 # Function to calculate and apply Suess and Laws corrections.
 
 SuessR <- function(data, correct.to = 1850) {
+
+  # Make sure the data is a dataframe
+  if(is.matrix(data)) data <- as.data.frame(data)
 
   # Screen input data to check for (and remove) missing values, with warning
   if(anyNA(data)) warning("Rows with missing values were deleted")
@@ -13,94 +23,60 @@ SuessR <- function(data, correct.to = 1850) {
   current.year <- as.numeric(substr(date(), 21,24))-1
   if(any(!(data$year %in% 1850:current.year)))  stop(paste("Year must be an integer between 1850 and ", current.year))
 
+  # Screen input data to make sure the 'correct.to' year is an integer between 1850 and the current year -1
+  current.year <- as.numeric(substr(date(), 21,24))-1
+  if(any(!(correct.to %in% 1850:current.year)))  stop(paste("correct.to must be an integer between 1850 and ", current.year))
+
   # Screen input data to check for non-negative d13c values
   if(any(data$d13c >= 0)) warning(paste("Some d13c value(s) are non-negative"))
 
   # Screen input data to check for (and remove) missing values, with warning
-  if(any(!(data$region %in% SuessR.reference.data$region))) stop(paste("Unrecognized region: "), data$region[!(data$region %in% SuessR.reference.data$region)])
+  if(any(!(data$region %in% SuessR.reference.data$region))) stop(paste("Unrecognized region:", unique(data$region[!(data$region %in% SuessR.reference.data$region)]), "  "))
 
 
 
   # Create output data frame
   SuessR.out <- data.frame(id = data$id, year = data$year)
 
-  ref.array <- simplify2array(by(SuessR.reference.data[,-2], SuessR.reference.data$region, as.matrix))
+  ref <- SuessR.reference.data
 
   #ln(K0)
-  lnK0 <- -58.0931+90.5069*(100/(SuessR.reference.data$sst+273.15))+(22.294*log((SuessR.reference.data$sst+273.15)/100))+(SuessR.reference.data$S*(0.027766+-0.025888*((SuessR.reference.data$sst+273.15)/100)+0.005058*((SuessR.reference.data$sst+273.15)/100)^2))
-  laws <- data.frame(lnK0 = lnK0)
-  laws$region <- SuessR.reference.data$region
-  laws$oi <- rep(NA, length(SuessR.reference.data$sst))
+  ref$lnK0 <- with(ref,
+                   -58.0931 + 90.5069 * (100/(sst+273.15))
+                   + (22.294 * log((sst+273.15)/100))
+                   + (S * (0.027766 + -0.025888 * ((sst+273.15)/100)
+                           + 0.005058 * ((sst+273.15)/100)^2)))
 
   #Ocean Increase
-  for(j in 2:length(SuessR.reference.data$sst)) {
-    laws$oi[j] <- (SuessR.reference.data$CO2atm[j] - SuessR.reference.data$CO2atm[j-1])*0.4
-  }
+  n <- nrow(ref)
+  ref$oi <- c(NA, with(ref, (CO2atm[-1] - CO2atm[-n])*0.4))
 
   #~f(CO2)ocean
-  for(k in 1:length(SuessR.reference.data$sst)) {
-    laws$fCO2[k] <- sum(laws$oi[1:k], na.rm = T) + 284.25
-  }
+  ref$fCO2 <- c(284.25, cumsum(ref$oi[-1]) + 284.25)
 
   #CO2aq
-  for(l in 1:length(SuessR.reference.data$sst)) {
-    laws$CO2aq[l] <- exp(laws$lnK0[l])*laws$fCO2[l]
-  }
+  ref$CO2aq <- exp(ref$lnK0)*ref$fCO2
 
-  laws.array <- simplify2array(by(laws[,-2], laws$region, as.matrix))
+  # Laws expression for a given year
+  ref$laws.current <- with(ref, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
 
-  for(i in 1:length(data$year)) {
+  data <- merge(data, ref, c("region", "year"))
 
-    SuessR.out$d13c.uncor[i] <- data$d13c[data$year == data$year[i] & data$region == data$region[i]]
-    SuessR.out$suess.cor[i]  <- 0.014*exp((data$year[data$year == data$year[i] & data$region == data$region[i]]-1850)*0.027) - 0.014*exp((correct.to-1850)*0.027)
-    SuessR.out$laws.cor[i]   <- ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]] +
-                                    ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]] -
-                                    ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]] -
-                            (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == data$year[i]]*
-                                    ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]])/
-                                   (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]*
-                                    ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]*
-                                 (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]])))))*
-                                  ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]-
-                                    ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]])/
-                                   (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]+1))) -
-                                   ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] +
-                                     ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-                                     ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850]) -
-                             (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == 1850]*
-                                     ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-                                    (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                                     ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                                  (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850])))))*
-                                   ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-                                     ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-                                    (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850]+1)))) -
+  dat1850 <- ref[ref$year==1850,]
+  dat1850$laws1850 <- with(dat1850, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
+  data <- merge(data, dat1850[,c("region", "laws1850")], "region")
+  dat.correct.to <- ref[ref$year==correct.to,]
+  dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
+  data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region")
+  data$Laws.cor <- with(data, (laws.current - laws1850) - (laws.correct.to - laws1850))
 
-                                   ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] +
-                                     ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] -
-                                     ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] -
-                             (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == correct.to]*
-                                     ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == correct.to])/
-                                    (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == correct.to]*
-                                     ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == correct.to]*
-                                  (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == correct.to])))))*
-                                   ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] -
-                                     ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == correct.to])/
-                                    (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == correct.to]+1))) -
-                                   ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] +
-                                     ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-                                     ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850]) -
-                             (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == 1850]*
-                                     ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-                                    (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                                     ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                                  (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850])))))*
-                                   ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-                                     ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-                                    (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850]+1))))
-    SuessR.out$net.cor[i]    <- SuessR.out$suess.cor[i] + SuessR.out$laws.cor[i]
-    SuessR.out$d13c.cor[i]   <- data$d13c[data$year == data$year[i] & data$region == data$region[i]] + SuessR.out$net.cor[i]
-  }
+  SuessR.out <- data[,c("id","year", "d13c", "Laws.cor")]
+  names(SuessR.out)[3] <- "d13c.uncor"
+  SuessR.out$Suess.cor  <- with(data, 0.014 * exp((year-1850)*0.027)
+                                - 0.014*exp((correct.to-1850)*0.027))
+  SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
+  SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
+  SuessR.out <- SuessR.out[order(SuessR.out$id),]  # Sort by id if desired
   print(SuessR.out)
 }
 
@@ -113,108 +89,74 @@ SuessR <- function(data, correct.to = 1850) {
 SuessR.custom <- function(data, custom.data, correct.to = 1850) {
 
 
+  # Make sure the data is a dataframe
+  if(is.matrix(data)) data <- as.data.frame(data)
+
   # Screen input data to check for (and remove) missing values, with warning
   if(anyNA(data)) warning("Rows with missing values were deleted")
   data <- na.omit(data)
 
   # Screen input data to make sure all years provided are integers between 1850 and the current year -1
   current.year <- as.numeric(substr(date(), 21,24))-1
-  if(any(!(data$year %in% 1850:current.year)))  stop(paste("Year must be an integer between 1850 and", current.year))
+  if(any(!(data$year %in% 1850:current.year)))  stop(paste("Year must be an integer between 1850 and ", current.year))
+
+  # Screen input data to make sure the 'correct.to' year is an integer between 1850 and the current year -1
+  current.year <- as.numeric(substr(date(), 21,24))-1
+  if(any(!(correct.to %in% 1850:current.year)))  stop(paste("correct.to must be an integer between 1850 and ", current.year))
 
   # Screen input data to check for non-negative d13c values
-  if(any(data$d13c >= 0)) warning(paste("Non-negative d13c value(s) supplied to SuessR"))
+  if(any(data$d13c >= 0)) warning(paste("Some d13c value(s) are non-negative"))
+
 
 
 
   # Create output data frame
-     SuessR.out <- data.frame(id = data$id, year = data$year)
+  SuessR.out <- data.frame(id = data$id, year = data$year)
 
+  ref <- rbind(SuessR.reference.data, custom.data)
 
-  # Append the custom data to the end of the SuessR.reference.data file
-
-  SuessR.reference.data.custom <- as.data.frame(rbind(SuessR.reference.data, custom.data))
 
   # Screen input data to check for (and remove) missing values, with warning
-  if(any(!(data$region %in% SuessR.reference.data.custom$region))) stop(paste("Unrecognized region: "), data$region[!(data$region %in% SuessR.reference.data.custom$region)])
+  if(any(!(data$region %in% ref$region))) stop(paste("Unrecognized region: "), data$region[!(data$region %in% ref$region)])
 
 
-
-  ref.array <- simplify2array(by(SuessR.reference.data.custom[,-2], SuessR.reference.data.custom$region, as.matrix))
 
   #ln(K0)
-  lnK0 <- -58.0931+90.5069*(100/(SuessR.reference.data.custom$sst+273.15))+(22.294*log((SuessR.reference.data.custom$sst+273.15)/100))+(SuessR.reference.data.custom$S*(0.027766+-0.025888*((SuessR.reference.data.custom$sst+273.15)/100)+0.005058*((SuessR.reference.data.custom$sst+273.15)/100)^2))
-  laws <- data.frame(lnK0 = lnK0)
-  laws$region <- SuessR.reference.data.custom$region
-  laws$oi <- rep(NA, length(SuessR.reference.data.custom$sst))
+  ref$lnK0 <- with(ref,
+                   -58.0931 + 90.5069 * (100/(sst+273.15))
+                   + (22.294 * log((sst+273.15)/100))
+                   + (S * (0.027766 + -0.025888 * ((sst+273.15)/100)
+                           + 0.005058 * ((sst+273.15)/100)^2)))
 
   #Ocean Increase
-  for(j in 2:length(SuessR.reference.data.custom$sst)) {
-    laws$oi[j] <- (SuessR.reference.data.custom$CO2atm[j] - SuessR.reference.data.custom$CO2atm[j-1])*0.4
-  }
+  n <- nrow(ref)
+  ref$oi <- c(NA, with(ref, (CO2atm[-1] - CO2atm[-n])*0.4))
 
   #~f(CO2)ocean
-  for(k in 1:length(SuessR.reference.data.custom$sst)) {
-    laws$fCO2[k] <- sum(laws$oi[1:k], na.rm = T) + 284.25
-  }
+  ref$fCO2 <- c(284.25, cumsum(ref$oi[-1]) + 284.25)
 
   #CO2aq
-  for(l in 1:length(SuessR.reference.data.custom$sst)) {
-    laws$CO2aq[l] <- exp(laws$lnK0[l])*laws$fCO2[l]
-  }
+  ref$CO2aq <- exp(ref$lnK0)*ref$fCO2
 
-  laws.array <- simplify2array(by(laws[,-2], laws$region, as.matrix))
+  # Laws expression for a given year
+  ref$laws.current <- with(ref, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
 
-  for(i in 1:length(data$year)) {
+  data <- merge(data, ref, c("region", "year"))
 
-    SuessR.out$d13c.uncor[i] <- data$d13c[data$year == data$year[i] & data$region == data$region[i]]
-    SuessR.out$suess.cor[i]  <- 0.014*exp((data$year[data$year == data$year[i] & data$region == data$region[i]]-1850)*0.027) - 0.014*exp((correct.to-1850)*0.027)
-    SuessR.out$laws.cor[i]   <- ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]] +
-                                  ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]] -
-                                  ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]] -
-                          (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == data$year[i]]*
-                                  ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]])/
-                                 (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]*
-                                                ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]*
-                                                (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]])))))*
-                                    ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]-
-                                        ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]])/
-                                       (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == data$year[i]]+1))) -
-                                   ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] +
-                                       ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-                                       ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850]) -
-                                      (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == 1850]*
-                                                ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-                                               (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                                                  ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                                                  (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850])))))*
-                                      ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-                                          ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-                                         (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850]+1)))) -
+  dat1850 <- ref[ref$year==1850,]
+  dat1850$laws1850 <- with(dat1850, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
+  data <- merge(data, dat1850[,c("region", "laws1850")], "region")
+  dat.correct.to <- ref[ref$year==correct.to,]
+  dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
+  data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region")
+  data$Laws.cor <- with(data, (laws.current - laws1850) - (laws.correct.to - laws1850))
 
-      ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] +
-          ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] -
-          ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] -
-          (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == correct.to]*
-                    ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == correct.to])/
-                   (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == correct.to]*
-                      ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == correct.to]*
-                      (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == correct.to])))))*
-          ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == correct.to] -
-              ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == correct.to])/
-             (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == correct.to]+1))) -
-         ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] +
-             ref.array[,"esub1",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-             ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850]) -
-            (1/(1+((laws.array[,"CO2aq",as.character(data$region[i])][ref.array[,"year",data$region[i]] == 1850]*
-                      ref.array[,"P",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-                     (ref.array[,"mu",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                        ref.array[,"C",data$region[i]][ref.array[,"year",data$region[i]] == 1850]*
-                        (1+ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850])))))*
-            ((ref.array[,"esub2",data$region[i]][ref.array[,"year",data$region[i]] == 1850] -
-                ref.array[,"esubneg1",data$region[i]][ref.array[,"year",data$region[i]] == 1850])/
-               (ref.array[,"beta",data$region[i]][ref.array[,"year",data$region[i]] == 1850]+1))))
-    SuessR.out$net.cor[i]    <- SuessR.out$suess.cor[i] + SuessR.out$laws.cor[i]
-    SuessR.out$d13c.cor[i]   <- data$d13c[data$year == data$year[i] & data$region == data$region[i]] + SuessR.out$net.cor[i]
-  }
+  SuessR.out <- data[,c("id","year", "d13c", "Laws.cor")]
+  names(SuessR.out)[3] <- "d13c.uncor"
+  SuessR.out$Suess.cor  <- with(data, 0.014 * exp((year-1850)*0.027)
+                                - 0.014*exp((correct.to-1850)*0.027))
+  SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
+  SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
+  SuessR.out <- SuessR.out[order(SuessR.out$id),]  # Sort by id if desired
   print(SuessR.out)
 }
