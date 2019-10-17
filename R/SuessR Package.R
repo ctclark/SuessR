@@ -160,3 +160,21 @@ SuessR.custom <- function(data, custom.data, correct.to = 1850) {
   SuessR.out <- SuessR.out[order(SuessR.out$id),]  # Sort by id if desired
   print(SuessR.out)
 }
+
+
+
+
+# Function for calculating regional uptake constants
+
+reg.uptake <- function(year1, year2, d13C.change) {
+
+  reg.up.const <- d13C.change/(exp((year2-1850)*0.027) - exp((year1 - 1850)*0.027))
+
+  print(reg.up.const)
+
+}
+
+
+
+
+
