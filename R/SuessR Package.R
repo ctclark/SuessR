@@ -68,12 +68,12 @@ SuessR <- function(data, correct.to = 1850) {
   dat.correct.to <- ref[ref$year==correct.to,]
   dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
   data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region")
-  data$Laws.cor <- with(data, (laws.current - laws1850) - (laws.correct.to - laws1850))
+  data$Laws.cor <- round(with(data, (laws.current - laws1850) - (laws.correct.to - laws1850)),2)
 
   SuessR.out <- data[,c("id","year", "d13c", "Laws.cor")]
   names(SuessR.out)[3] <- "d13c.uncor"
-  SuessR.out$Suess.cor  <- with(data, 0.014 * exp((year-1850)*0.027)
-                                - 0.014*exp((correct.to-1850)*0.027))
+  SuessR.out$Suess.cor  <- round(with(data, 0.014 * exp((year-1850)*0.027)
+                                - 0.014*exp((correct.to-1850)*0.027)),2)
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
   SuessR.out <- SuessR.out[order(SuessR.out$id),]  # Sort by id if desired
@@ -149,12 +149,12 @@ SuessR.custom <- function(data, custom.data, correct.to = 1850) {
   dat.correct.to <- ref[ref$year==correct.to,]
   dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, mu=mu, C=C, b=beta))
   data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region")
-  data$Laws.cor <- with(data, (laws.current - laws1850) - (laws.correct.to - laws1850))
+  data$Laws.cor <- round(with(data, (laws.current - laws1850) - (laws.correct.to - laws1850)), 2)
 
   SuessR.out <- data[,c("id","year", "d13c", "Laws.cor")]
   names(SuessR.out)[3] <- "d13c.uncor"
-  SuessR.out$Suess.cor  <- with(data, 0.014 * exp((year-1850)*0.027)
-                                - 0.014*exp((correct.to-1850)*0.027))
+  SuessR.out$Suess.cor  <- round(with(data, 0.014 * exp((year-1850)*0.027)
+                                - 0.014*exp((correct.to-1850)*0.027)),2)
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
   SuessR.out <- SuessR.out[order(SuessR.out$id),]  # Sort by id if desired
@@ -168,7 +168,7 @@ SuessR.custom <- function(data, custom.data, correct.to = 1850) {
 
 reg.uptake <- function(year1, year2, d13C.change) {
 
-  reg.up.const <- d13C.change/(exp((year2-1850)*0.027) - exp((year1 - 1850)*0.027))
+  reg.up.const <- round(d13C.change/(exp((year2-1850)*0.027) - exp((year1 - 1850)*0.027)),2)
 
   print(reg.up.const)
 
