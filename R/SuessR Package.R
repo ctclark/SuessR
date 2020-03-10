@@ -76,7 +76,6 @@ SuessR <- function(data, correct.to = 1850) {
                                 - 0.014*exp((correct.to-1850)*0.027)),2)
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
-  SuessR.out <- SuessR.out[order(SuessR.out$id),]  # Sort by id if desired
   print(SuessR.out)
 }
 
@@ -157,7 +156,6 @@ SuessR.custom <- function(data, custom.data, correct.to = 1850) {
                                 - 0.014*exp((correct.to-1850)*0.027)),2)
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
-  SuessR.out <- SuessR.out[order(SuessR.out$id),]  # Sort by id if desired
   print(SuessR.out)
 }
 
