@@ -3,8 +3,8 @@
 
 # Function to calculate the Laws correction. Used within the SuessR() and SuessR.custom() functions.
 
-laws.fun <- function(laws.CO2, P, sst, C, b) {
-  1 + 1 - 1 - (1/(1+((laws.CO2*P)/ (0.5*C*(1+b))))) * ((26.5 - 1)/ (b+1))
+laws.fun <- function(e1, e2, e.1, laws.CO2, P, sst, C, b) {
+  e2 + e1 - e.1 - (1/(1+((laws.CO2*P)/ (0.5*C*(1+b))))) * ((e2 - e.1)/ (b+1))
 }
 
 
@@ -80,15 +80,15 @@ SuessR <- function(data, correct.to = 1850) {
   ref$CO2aq <- exp(ref$lnK0)*ref$fCO2
 
   # Laws expression for a given year
-  ref$laws.current <- with(ref, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
+  ref$laws.current <- with(ref, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
 
   data <- merge(data, ref, c("region", "year"), sort = F)
 
   dat1850 <- ref[ref$year==1850,]
-  dat1850$laws1850 <- with(dat1850, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
+  dat1850$laws1850 <- with(dat1850, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
   data <- merge(data, dat1850[,c("region", "laws1850")], "region", sort = F)
   dat.correct.to <- ref[ref$year==correct.to,]
-  dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
+  dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
   data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region", sort = F)
   data$Laws.cor <- round(with(data, (laws.current - laws1850) - (laws.correct.to - laws1850)),2)
 
@@ -123,9 +123,6 @@ SuessR <- function(data, correct.to = 1850) {
 #' @examples
 #' example.region.data <- data.frame(year = seq(from = 1850, to = 2019, by = 1),
 #'                                                          region = rep("Example Region", 170),
-#'                                                          esub1 = rep(1, 170),
-#'                                                          esubneg1 = rep(1, 170),
-#'                                                          esub2 = rep(26.5, 170),
 #'                                                          r = rep(5, 170),
 #'                                                          C = rep(1.09e-09, 170),
 #'                                                          P = rep(4.57e-10, 170),
@@ -198,15 +195,15 @@ SuessR.custom <- function(data, custom.region.data, correct.to = 1850) {
   ref$CO2aq <- exp(ref$lnK0)*ref$fCO2
 
   # Laws expression for a given year
-  ref$laws.current <- with(ref, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
+  ref$laws.current <- with(ref, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
 
   data <- merge(data, ref, c("region", "year"), sort = F)
 
   dat1850 <- ref[ref$year==1850,]
-  dat1850$laws1850 <- with(dat1850, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
+  dat1850$laws1850 <- with(dat1850, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
   data <- merge(data, dat1850[,c("region", "laws1850")], "region", sort = F)
   dat.correct.to <- ref[ref$year==correct.to,]
-  dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=esub1, e2=esub2, e.1=esubneg1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
+  dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
   data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region", sort = F)
   data$Laws.cor <- round(with(data, (laws.current - laws1850) - (laws.correct.to - laws1850)), 2)
 
