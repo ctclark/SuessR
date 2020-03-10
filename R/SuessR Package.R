@@ -3,8 +3,8 @@
 
 # Function to calculate the Laws correction. Used within the SuessR() and SuessR.custom() functions.
 
-laws.fun <- function(e1 = 1, e2 = 26.5,e.1 = -1, laws.CO2, P, sst, C, b) {
-  e2 + e1 - e.1 - (1/(1+((laws.CO2*P)/ (0.5*C*(1+b))))) * ((e2 - e.1)/ (b+1))
+laws.fun <- function(laws.CO2, P, sst, C, b) {
+  1 + 1 - 1 - (1/(1+((laws.CO2*P)/ (0.5*C*(1+b))))) * ((26.5 - 1)/ (b+1))
 }
 
 
