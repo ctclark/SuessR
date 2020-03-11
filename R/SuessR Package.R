@@ -82,10 +82,12 @@ SuessR <- function(data, correct.to = 1850) {
   # Laws expression for a given year
   ref$laws.current <- with(ref, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
 
+  data$order <- seq(1,length(data$id),1)
   data <- merge(data, ref, c("region", "year"), sort = F)
 
   dat1850 <- ref[ref$year==1850,]
   dat1850$laws1850 <- with(dat1850, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
+
   data <- merge(data, dat1850[,c("region", "laws1850")], "region", sort = F)
   dat.correct.to <- ref[ref$year==correct.to,]
   dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
@@ -98,7 +100,7 @@ SuessR <- function(data, correct.to = 1850) {
                                 - 0.014*exp((correct.to-1850)*0.027)),2)
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
-  SuessR.out <- SuessR.out[order(rownames(data)),]
+  SuessR.out <- SuessR.out[order(data$order),]
   print(SuessR.out)
 }
 
@@ -197,6 +199,7 @@ SuessR.custom <- function(data, custom.region.data, correct.to = 1850) {
   # Laws expression for a given year
   ref$laws.current <- with(ref, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, P=P, sst=sst, C=C, b=beta))
 
+  data$order <- seq(1,length(data$id),1)
   data <- merge(data, ref, c("region", "year"), sort = F)
 
   dat1850 <- ref[ref$year==1850,]
@@ -213,6 +216,7 @@ SuessR.custom <- function(data, custom.region.data, correct.to = 1850) {
                                 - 0.014*exp((correct.to-1850)*0.027)),2)
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
+  SuessR.out <- SuessR.out[order(data$order),]
   print(SuessR.out)
 }
 
