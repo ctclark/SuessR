@@ -112,7 +112,7 @@ SuessR <- function(data, correct.to = 1850) {
   ref$CO2aq <- exp(ref$lnK0)*ref$fCO2
 
   # Laws expression for a given year
-  ref$laws.current <- with(ref, laws.fun(e1=1, e2=26.5, e.1=1,laws.CO2=CO2aq, r=r, sst=sst, b=beta))
+  ref$laws.current <- with(ref, laws.fun(e1=1, e2=26.5, e.1=1, laws.CO2=CO2aq, r=r, sst=sst, b=beta))
 
   data$order <- seq(1,length(data$id),1)
   data <- merge(data, ref, c("region", "year"), sort = F)
