@@ -1,13 +1,22 @@
 Package: SuessR
-Title: What the Package Does (One Line, Title Case)
-Version: 0.1.0
-Authors@R: 
-    person(given = "First",
-           family = "Last",
-           role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
+Title: Suess and Laws corrections for stable carbon isotope data from marine systems
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Casey", "Clark", email = "ctclark@uw.edu", role = c("cre","aut")),
+    person("Mattias", "Cape", email = "mcape@uw.edu", role = "aut"),
+    person("Bruce", "Finney", email = "finney@isu.edu", role = "aut"),
+    person("Franz", "Mueter", email = "fmueter@alaska.edu", role = "aut"),
+    person("Mark", "Shapley", email = "shap0029@umn.edu", role = "aut"),
+    person("Nicole", "Misarti", email = "nmisarti@alaska.edu", role = "aut"))
+Description: The SuessR package generates region-specific Suess and Laws corrections for 
+    stable carbon isotope data from marine organisms collected between 1850 and 2019. Version
+    0.0.0.9000 of the package contains four built-in regions: the Bering Sea ('Bering Sea'), the
+    Aleutian archipelago ('Aleutians Islands'), the Gulf of Alaska ('Gulf of Alaska'), and the 
+    subpolar North Atlantic ('Subpolar North Atlantic'). Users can supply their own environmental 
+    data for regions currently not built into the package to generate corrections for those regions.
+License: MIT + file LICENSE
+Depends: R (>= 3.5.0)
+Imports: stats
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.1.1
