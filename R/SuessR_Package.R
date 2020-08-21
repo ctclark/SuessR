@@ -16,7 +16,7 @@ laws.fun <- function(e1, e2, e.1, laws.CO2, sst, r, b, p) {
 #' @description Generates region-specific Suess, Laws, and net (Suess + Laws) corrections for stable carbon isotope data
 #'   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data, which are supplied
 #'   in the output. This function is specifically for data from regions currently built into SuessR
-#'   ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 1.0.0).
+#'   ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.0).
 #'   \if{html}{\figure{Built-in-regions.png}{options: width=600 alt="Built-in regions"}}
 #'   \if{latex}{\figure{Built-in-regions.png}{options: width=6in}}
 #' @param data A matrix or data frame including columns containing sample ID ('id'), year of sample collection ('year'),
@@ -157,7 +157,7 @@ SuessR <- function(data, correct.to = 1850) {
 #' @description The SuessR.custom() function generates region-specific Suess, Laws, and net (Suess + Laws) corrections for
 #'   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data,
 #'   which are supplied in the output. This function is specifically for data from regions not currently built into SuessR
-#'   (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 1.0.0). Or
+#'   (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.0). Or
 #'   for scenarios in which users want to change the default parameters used by SuessR for the built-in regions (e.g., averge phytoplankton cell radius).
 #' @param data A dataframe including sample ID, year of sample collection, uncorrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C
 #'   data, and region. This function is specifically for data from regions not

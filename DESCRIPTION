@@ -1,6 +1,6 @@
 Package: SuessR
 Title: Suess and Laws corrections for stable carbon isotope data from marine systems
-Version: 1.0.0
+Version: 0.1.0
 Authors@R: c(
     person("Casey", "Clark", email = "ctclark@uw.edu", role = c("cre","aut")),
     person("Mattias", "Cape", email = "mcape@uw.edu", role = "aut"),

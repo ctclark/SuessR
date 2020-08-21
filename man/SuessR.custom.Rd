@@ -28,7 +28,7 @@ The output of this function is a data frame that includes the sample ID ('id'), 
 The SuessR.custom() function generates region-specific Suess, Laws, and net (Suess + Laws) corrections for
   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data,
   which are supplied in the output. This function is specifically for data from regions not currently built into SuessR
-  (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 1.0.0). Or
+  (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.0). Or
   for scenarios in which users want to change the default parameters used by SuessR for the built-in regions (e.g., averge phytoplankton cell radius).
 }
 \details{
