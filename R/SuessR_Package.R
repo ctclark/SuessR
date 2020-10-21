@@ -1,5 +1,7 @@
 # SuessR Package
 
+globalVariables("SuessR.reference.data")
+
 # Function to calculate the Laws correction. Used within the SuessR() and SuessR.custom() functions.
 
 laws.fun <- function(e1, e2, e.1, laws.CO2, sst, r, b, p) {
@@ -16,7 +18,7 @@ laws.fun <- function(e1, e2, e.1, laws.CO2, sst, r, b, p) {
 #' @description Generates region-specific Suess, Laws, and net (Suess + Laws) corrections for stable carbon isotope data
 #'   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data, which are supplied
 #'   in the output. This function is specifically for data from regions currently built into SuessR
-#'   ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.0).
+#'   ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.1).
 #'   \if{html}{\figure{Built-in-regions.png}{options: width=600 alt="Built-in regions"}}
 #'   \if{latex}{\figure{Built-in-regions.png}{options: width=6in}}
 #' @param data A matrix or data frame including columns containing sample ID ('id'), year of sample collection ('year'),
@@ -78,6 +80,9 @@ SuessR <- function(data, correct.to = 1850) {
   # Make sure the data is a dataframe
   if(is.matrix(data)) data <- as.data.frame(data)
 
+  # Make input data column names are correct
+  if(any(!(colnames(data) %in% c("id", "year", "region", "d13c")))) stop(paste("Unrecognized input data:", unique(colnames(data)[!(colnames(data) %in% c("id", "year", "region", "d13c"))]), "  "))
+
   # Screen input data to check for (and remove) missing values, with warning
   if(anyNA(data)) warning("Rows with missing values were deleted")
   data <- na.omit(data)
@@ -111,14 +116,17 @@ SuessR <- function(data, correct.to = 1850) {
                              + 0.005058 * ((sst + 273.15)/100)^2)))
 
   #Ocean Increase
+  ref$oi <- NA
   for(i in unique(ref$region)) {
-    n <- nrow(ref[ref$region == i,])
-    ref$oi <- c(NA, with(ref[ref$region == i,], (CO2atm[-1] - CO2atm[-n])*ref[ref$region == i,]$Cp[1]))
+    sub.i <- ref[ref$region == i,]
+    n <- nrow(sub.i)
+    ref[ref$region == i, ]$oi <- c(NA, with(sub.i, (CO2atm[-1] - CO2atm[-n]) * sub.i$Cp[1]))
   }
 
   #~f(CO2)ocean
-  for(i in unique(ref$region)) {
-    ref$fCO2 <- c(285.78, cumsum(ref[ref$region == i,]$oi[-1]) + 285.78)
+  ref$fCO2 <- NA
+  for (i in unique(ref$region)) {
+    ref[ref$region == i,]$fCO2 <- c(285.78, cumsum(ref[ref$region == i, ]$oi[-1]) + 285.78)
   }
 
   #CO2aq
@@ -137,16 +145,16 @@ SuessR <- function(data, correct.to = 1850) {
   dat.correct.to <- ref[ref$year==correct.to,]
   dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=1, e2=26.5, e.1=1, p=1.5e-5, laws.CO2=CO2aq, sst=sst, r=r, b=0.2))
   data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region", sort = F)
-  data$Laws.cor <- round(with(data, (laws.current - laws1850) - (laws.correct.to - laws1850)),3)
+  data$Laws.cor <- with(data, (laws.current - laws1850) - (laws.correct.to - laws1850))
 
   SuessR.out <- data[,c("id","year", "d13c", "Laws.cor")]
   names(SuessR.out)[3] <- "d13c.uncor"
-  SuessR.out$Suess.cor  <- round(with(data, up.con*exp((year-1850)*0.027)
-                                - up.con*exp((correct.to-1850)*0.027)),3)
+  SuessR.out$Suess.cor  <- with(data, up.con*exp((year-1850)*0.027)
+                              - up.con*exp((correct.to-1850)*0.027))
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
   SuessR.out <- SuessR.out[order(data$order),]
-  print(SuessR.out)
+  print(cbind(SuessR.out[,1:3], round(SuessR.out[,4:7],3)))
 }
 
 
@@ -157,7 +165,7 @@ SuessR <- function(data, correct.to = 1850) {
 #' @description The SuessR.custom() function generates region-specific Suess, Laws, and net (Suess + Laws) corrections for
 #'   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data,
 #'   which are supplied in the output. This function is specifically for data from regions not currently built into SuessR
-#'   (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.0). Or
+#'   (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.1). Or
 #'   for scenarios in which users want to change the default parameters used by SuessR for the built-in regions (e.g., averge phytoplankton cell radius).
 #' @param data A dataframe including sample ID, year of sample collection, uncorrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C
 #'   data, and region. This function is specifically for data from regions not
@@ -167,7 +175,7 @@ SuessR <- function(data, correct.to = 1850) {
 #'   See details for information on how to supply these parameters appropriately.
 #' @param correct.to The year to which the \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data will be corrected. Defaults to 1850, pre-Suess effect.
 #' @details The SuessR.custom() allows users to calculate and apply Suess and Laws corrections to \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data from marine
-#'   organisms collected in a region not currently built into the SuessR package. In the initial release (Version 0.1.0), the
+#'   organisms collected in a region not currently built into the SuessR package. In the initial release (Version 0.1.1), the
 #'   built-in regions are the Bering Sea ('Bering'), the Aleutian archipelago ('Aleutians'), and the Gulf of Alaska ('Gulf of
 #'   Alaska'). Because the Suess and Laws corrections require region-specific environmental data from 1850-present, users must
 #'   supply these data using the 'custom.region.data' argument. Once these data have been supplied, this function calculates
@@ -224,6 +232,9 @@ SuessR.custom <- function(data, custom.region.data, correct.to = 1850) {
   if(anyNA(data)) warning("Rows with missing values were deleted")
   data <- na.omit(data)
 
+  # Make input data column names are correct
+  if(any(!(colnames(data) %in% c("id", "year", "region", "d13c")))) stop(paste("Unrecognized input data:", unique(colnames(data)[!(colnames(data) %in% c("id", "year", "region", "d13c"))]), "  "))
+
   # Screen input data to make sure all years provided are integers between 1850 and the current year -1
   current.year <- as.numeric(substr(date(), 21,24))-1
   if(any(!(data$year %in% 1850:current.year)))  stop(paste("Year must be an integer between 1850 and ", current.year))
@@ -257,15 +268,17 @@ SuessR.custom <- function(data, custom.region.data, correct.to = 1850) {
                            + 0.005058 * ((sst + 273.15)/100)^2)))
 
   #Ocean Increase
+  ref$oi <- NA
   for(i in unique(ref$region)) {
-  n <- nrow(ref[ref$region == i,])
-  ref$oi <- c(0, with(ref[ref$region == i,], (CO2atm[-1] - CO2atm[-n])*ref[ref$region == i,]$Cp[1]))
+    sub.i <- ref[ref$region == i,]
+    n <- nrow(sub.i)
+    ref[ref$region == i, ]$oi <- c(NA, with(sub.i, (CO2atm[-1] - CO2atm[-n]) * sub.i$Cp[1]))
   }
 
-
   #~f(CO2)ocean
-  for(i in unique(ref$region)) {
-    ref$fCO2 <- c(285.78, cumsum(ref[ref$region == i,]$oi[-1]) + 285.78)
+  ref$fCO2 <- NA
+  for (i in unique(ref$region)) {
+    ref[ref$region == i,]$fCO2 <- c(285.78, cumsum(ref[ref$region == i, ]$oi[-1]) + 285.78)
   }
 
 
@@ -284,16 +297,16 @@ SuessR.custom <- function(data, custom.region.data, correct.to = 1850) {
   dat.correct.to <- ref[ref$year==correct.to,]
   dat.correct.to$laws.correct.to <- with(dat.correct.to, laws.fun(e1=1, e2=26.5, e.1=1, p=1.5e-5, laws.CO2=CO2aq, sst=sst, r=r, b=0.2))
   data <- merge(data, dat.correct.to[,c("region", "laws.correct.to")], "region", sort = F)
-  data$Laws.cor <- round(with(data, (laws.current - laws1850) - (laws.correct.to - laws1850)), 3)
+  data$Laws.cor <- with(data, (laws.current - laws1850) - (laws.correct.to - laws1850))
 
   SuessR.out <- data[,c("id","year", "d13c", "Laws.cor")]
   names(SuessR.out)[3] <- "d13c.uncor"
-  SuessR.out$Suess.cor  <- round(with(data, up.con*exp((year-1850)*0.027)
-                                - up.con*exp((correct.to-1850)*0.027)),3)
+  SuessR.out$Suess.cor  <- with(data, up.con*exp((year-1850)*0.027)
+                                - up.con*exp((correct.to-1850)*0.027))
   SuessR.out$net.cor    <- SuessR.out$Suess.cor + SuessR.out$Laws.cor
   SuessR.out$d13c.cor   <- data$d13c + SuessR.out$net.cor
   SuessR.out <- SuessR.out[order(data$order),]
-  print(SuessR.out)
+  print(cbind(SuessR.out[,1:3], round(SuessR.out[,4:7],3)))
 }
 
 
