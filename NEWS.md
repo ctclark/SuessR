@@ -1,3 +1,9 @@
+# SuessR 0.1.3
+
+* Corrected error in the SuessRReferenceData file introduced 
+    in Version 0.1.2for the Subpolar North Atlantic
+
+
 # SuessR 0.1.2
 
 * Package now corrects data through 2020

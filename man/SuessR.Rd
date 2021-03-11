@@ -24,7 +24,7 @@ The output of this function is a data frame that includes the sample ID ('id'), 
 Generates region-specific Suess, Laws, and net (Suess + Laws) corrections for stable carbon isotope data
   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data, which are supplied
   in the output. This function is specifically for data from regions currently built into SuessR
-  ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.2).
+  ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.3).
   \if{html}{\figure{Built-in-regions.png}{options: width=600 alt="Built-in regions"}}
   \if{latex}{\figure{Built-in-regions.png}{options: width=6in}}
 }
