@@ -1,3 +1,9 @@
+# SuessR 0.1.2
+
+* Package now corrects data through 2020
+
+
+
 # SuessR 0.1.1
 
 * 'SuessR()' and 'SuessR.custom()' now return a warning when unrecognized

@@ -7,7 +7,7 @@
 \format{
 A data frame with 680 rows and 8 variables:
 \describe{
-    \item{year}{calendar year, 1850-2019}
+    \item{year}{calendar year, 1850-2020}
     \item{region}{geographic region, Aleutians, Bering, Gulf of Alaska, or Subpolar North Pacific}
     \item{r}{average cell radius of phytoplankton community, in microns}
     \item{sst}{yearly average sea surface temperature, in degrees C}

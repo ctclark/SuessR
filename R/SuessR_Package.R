@@ -18,7 +18,7 @@ laws.fun <- function(e1, e2, e.1, laws.CO2, sst, r, b, p) {
 #' @description Generates region-specific Suess, Laws, and net (Suess + Laws) corrections for stable carbon isotope data
 #'   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data, which are supplied
 #'   in the output. This function is specifically for data from regions currently built into SuessR
-#'   ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.1).
+#'   ("Bering", "Aleutians","Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.2).
 #'   \if{html}{\figure{Built-in-regions.png}{options: width=600 alt="Built-in regions"}}
 #'   \if{latex}{\figure{Built-in-regions.png}{options: width=6in}}
 #' @param data A matrix or data frame including columns containing sample ID ('id'), year of sample collection ('year'),
@@ -165,7 +165,7 @@ SuessR <- function(data, correct.to = 1850) {
 #' @description The SuessR.custom() function generates region-specific Suess, Laws, and net (Suess + Laws) corrections for
 #'   \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data input by the user. The net correction is then used to calculate the corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data,
 #'   which are supplied in the output. This function is specifically for data from regions not currently built into SuessR
-#'   (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.1). Or
+#'   (i.e., different from "Bering", "Aleutians", "Gulf of Alaska", and "Subpolar North Atlantic", as of Version 0.1.2). Or
 #'   for scenarios in which users want to change the default parameters used by SuessR for the built-in regions (e.g., averge phytoplankton cell radius).
 #' @param data A dataframe including sample ID, year of sample collection, uncorrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C
 #'   data, and region. This function is specifically for data from regions not
@@ -175,7 +175,7 @@ SuessR <- function(data, correct.to = 1850) {
 #'   See details for information on how to supply these parameters appropriately.
 #' @param correct.to The year to which the \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data will be corrected. Defaults to 1850, pre-Suess effect.
 #' @details The SuessR.custom() allows users to calculate and apply Suess and Laws corrections to \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data from marine
-#'   organisms collected in a region not currently built into the SuessR package. In the initial release (Version 0.1.1), the
+#'   organisms collected in a region not currently built into the SuessR package. In the initial release (Version 0.1.2), the
 #'   built-in regions are the Bering Sea ('Bering'), the Aleutian archipelago ('Aleutians'), and the Gulf of Alaska ('Gulf of
 #'   Alaska'). Because the Suess and Laws corrections require region-specific environmental data from 1850-present, users must
 #'   supply these data using the 'custom.region.data' argument. Once these data have been supplied, this function calculates
@@ -200,14 +200,14 @@ SuessR <- function(data, correct.to = 1850) {
 #'   ('net.cor'), and corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C ('d13c.cor') for each sample. The corrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data is equal to the uncorrected \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data
 #'   plus the net correction. The units for all values are the standard 'per mil' used for \ifelse{html}{\out{&delta;<sup>13</sup>}}{\eqn{{\delta}^{13}}}C data.
 #' @examples
-#' example.region.data <- data.frame(year = seq(from = 1850, to = 2019, by = 1),
-#'                                   region = rep("Example Region", 170),
-#'                                   r = rep(5, 170),
-#'                                   sst = seq(5.9, 6.6, 170),
-#'                                   sss = seq(32.3, 32.7, 170),
+#' example.region.data <- data.frame(year = seq(from = 1850, to = 2020, by = 1),
+#'                                   region = rep("Example Region", 171),
+#'                                   r = rep(5, 171),
+#'                                   sst = seq(5.9, 6.6, 171),
+#'                                   sss = seq(32.3, 32.7, 171),
 #'                                   CO2atm = SuessR.reference.data$CO2atm,
-#'                                   up.con = rep(0.014, 170),
-#'                                   Cp = rep(0.41, 170))
+#'                                   up.con = rep(0.014, 171),
+#'                                   Cp = rep(0.41, 171))
 #'
 #' example.custom.data <- data.frame(id = c("Sample 1", "Sample 2",
 #'                                          "Sample 3", "Sample 4"),

@@ -1,6 +1,6 @@
 Package: SuessR
 Title: Suess and Laws Corrections for Marine Stable Carbon Isotope Data
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
     person("Casey", "Clark", email = "casey.t.clark@gmail.com", role = c("cre","aut")),
     person("Mattias", "Cape", email = "mattias.cape@gmail.com", role = "aut"),
@@ -9,8 +9,8 @@ Authors@R: c(
     person("Bruce", "Finney", email = "finney@isu.edu", role = "aut"),
     person("Nicole", "Misarti", email = "nmisarti@alaska.edu", role = "aut"))
 Description: Generates region-specific Suess and Laws corrections for 
-    stable carbon isotope data from marine organisms collected between 1850 and 2019. Version
-    0.1.1 of 'SuessR' contains four built-in regions: the Bering Sea ('Bering Sea'), the
+    stable carbon isotope data from marine organisms collected between 1850 and 2020. Version
+    0.1.2 of 'SuessR' contains four built-in regions: the Bering Sea ('Bering Sea'), the
     Aleutian archipelago ('Aleutians Islands'), the Gulf of Alaska ('Gulf of Alaska'), and the 
     subpolar North Atlantic ('Subpolar North Atlantic'). Users can supply their own environmental 
     data for regions currently not built into the package to generate corrections for those regions.
